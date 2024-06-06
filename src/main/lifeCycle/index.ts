@@ -180,8 +180,8 @@ class LifeCycle {
         shortKeyHandler.init()
       })
       server.startup()
-      startFileServer()
       webServer.start()
+      startFileServer()
       if (process.env.NODE_ENV !== 'development') {
         handleStartUpFiles(process.argv, process.cwd())
       }
@@ -223,13 +223,13 @@ class LifeCycle {
         settingWindow.focus()
       }
       const clipboardDir = path.join(picgo.baseDir, CLIPBOARD_IMAGE_FOLDER)
-      fs.ensureDir(clipboardDir)
+      fs.emptyDir(clipboardDir)
     }
     app.whenReady().then(readyFunction)
   }
 
   #onRunning () {
-    app.on('second-instance', (event, commandLine, workingDirectory) => {
+    app.on('second-instance', (_, commandLine, workingDirectory) => {
       logger.info('detect second instance')
       const result = handleStartUpFiles(commandLine, workingDirectory)
       if (!result) {

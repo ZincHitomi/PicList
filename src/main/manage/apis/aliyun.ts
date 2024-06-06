@@ -53,9 +53,10 @@ class AliyunApi {
     this.logger = logger
   }
 
-  formatFolder (item: string, slicedPrefix: string) {
+  formatFolder (item: string, slicedPrefix: string, urlPrefix: string): any {
     return {
       key: item,
+      url: `${urlPrefix}/${item}`,
       fileSize: 0,
       formatedTime: '',
       fileName: item.replace(slicedPrefix, '').replace('/', ''),
@@ -217,7 +218,7 @@ class AliyunApi {
     const urlPrefix = configMap.customUrl || `https://${bucket}.${region}.aliyuncs.com`
     let marker
     const cancelTask = [false]
-    ipcMain.on(cancelDownloadLoadingFileList, (_evt: IpcMainEvent, token: string) => {
+    ipcMain.on(cancelDownloadLoadingFileList, (_: IpcMainEvent, token: string) => {
       if (token === cancelToken) {
         cancelTask[0] = true
         ipcMain.removeAllListeners(cancelDownloadLoadingFileList)
@@ -264,7 +265,7 @@ class AliyunApi {
     const urlPrefix = configMap.customUrl || `https://${bucket}.${region}.aliyuncs.com`
     let marker
     const cancelTask = [false]
-    ipcMain.on('cancelLoadingFileList', (_evt: IpcMainEvent, token: string) => {
+    ipcMain.on('cancelLoadingFileList', (_: IpcMainEvent, token: string) => {
       if (token === cancelToken) {
         cancelTask[0] = true
         ipcMain.removeAllListeners('cancelLoadingFileList')
@@ -288,7 +289,7 @@ class AliyunApi {
       })
       if (res?.res?.statusCode === 200) {
         res?.prefixes?.forEach((item: string) => {
-          result.fullList.push(this.formatFolder(item, slicedPrefix))
+          result.fullList.push(this.formatFolder(item, slicedPrefix, urlPrefix))
         })
         res?.objects?.forEach((item: OSS.ObjectMeta) => {
           item.size !== 0 && result.fullList.push(this.formatFile(item, slicedPrefix, urlPrefix))
@@ -348,7 +349,7 @@ class AliyunApi {
       }
     }
     const fullList = [
-      ...(res.prefixes?.map((item: string) => this.formatFolder(item, slicedPrefix)) || []),
+      ...(res.prefixes?.map((item: string) => this.formatFolder(item, slicedPrefix, urlPrefix)) || []),
       ...(res.objects?.filter((item: OSS.ObjectMeta) => item.size !== 0).map((item: OSS.ObjectMeta) => this.formatFile(item, slicedPrefix, urlPrefix)) || [])
     ]
     return {

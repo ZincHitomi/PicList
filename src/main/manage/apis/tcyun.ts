@@ -46,11 +46,12 @@ class TcyunApi {
     this.logger = logger
   }
 
-  formatFolder (item: {Prefix: string}, slicedPrefix: string): any {
+  formatFolder (item: {Prefix: string}, slicedPrefix: string, urlPrefix: string) {
     return {
       ...item,
       key: item.Prefix,
       fileSize: 0,
+      url: `${urlPrefix}/${item.Prefix}`,
       formatedTime: '',
       fileName: item.Prefix.replace(slicedPrefix, '').replace('/', ''),
       isDir: true,
@@ -108,13 +109,8 @@ class TcyunApi {
    * acl: private | publicRead | publicReadWrite
   */
   async createBucket (configMap: IStringKeyMap): Promise < boolean > {
-    const aclTransMap: IStringKeyMap = {
-      private: 'private',
-      publicRead: 'public-read',
-      publicReadWrite: 'public-read-write'
-    }
     const res = await this.ctx.putBucket({
-      ACL: aclTransMap[configMap.acl],
+      ACL: configMap.acl,
       Bucket: configMap.BucketName,
       Region: configMap.region
     })
@@ -129,7 +125,7 @@ class TcyunApi {
     const cancelTask = [false]
     let marker
 
-    ipcMain.on(cancelDownloadLoadingFileList, (_evt: IpcMainEvent, token: string) => {
+    ipcMain.on(cancelDownloadLoadingFileList, (_: IpcMainEvent, token: string) => {
       if (token === cancelToken) {
         cancelTask[0] = true
         ipcMain.removeAllListeners(cancelDownloadLoadingFileList)
@@ -174,7 +170,7 @@ class TcyunApi {
     const cancelTask = [false]
     let marker
 
-    ipcMain.on('cancelLoadingFileList', (_evt: IpcMainEvent, token: string) => {
+    ipcMain.on('cancelLoadingFileList', (_: IpcMainEvent, token: string) => {
       if (token === cancelToken) {
         cancelTask[0] = true
         ipcMain.removeAllListeners('cancelLoadingFileList')
@@ -196,7 +192,7 @@ class TcyunApi {
       })
       if (res?.statusCode === 200) {
         result.fullList.push(
-          ...res.CommonPrefixes.map(item => this.formatFolder(item, slicedPrefix)),
+          ...res.CommonPrefixes.map(item => this.formatFolder(item, slicedPrefix, urlPrefix)),
           ...res.Contents.filter(item => parseInt(item.Size) !== 0)
             .map(item => this.formatFile(item, slicedPrefix, urlPrefix))
         )
@@ -252,7 +248,7 @@ class TcyunApi {
     }
     const result = {
       fullList: [
-        ...res.CommonPrefixes.map(item => this.formatFolder(item, slicedPrefix)),
+        ...res.CommonPrefixes.map(item => this.formatFolder(item, slicedPrefix, urlPrefix)),
         ...res.Contents.filter(item => parseInt(item.Size) !== 0)
           .map(item => this.formatFile(item, slicedPrefix, urlPrefix))
       ],

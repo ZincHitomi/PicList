@@ -96,7 +96,7 @@
                   :label="$T('MANUAL_PAGE_OPEN_SETTING_TIP')"
                 >
                   <el-select
-                    v-model="form.manualPageOpen"
+                    v-model="currentManualPageOpen"
                     size="small"
                     style="width: 50%"
                     :placeholder="$T('MANUAL_PAGE_OPEN_SETTING_TIP')"
@@ -469,7 +469,7 @@
                   :label="$T('SETTINGS_SHORT_URL_SERVER')"
                 >
                   <el-select
-                    v-model="form.shortUrlServer"
+                    v-model="currentShortUrlServer"
                     size="small"
                     style="width: 50%"
                     :placeholder="$T('SETTINGS_SHORT_URL_SERVER')"
@@ -1735,7 +1735,7 @@ import pkg from 'root/package.json'
 
 // 事件常量
 import { PICGO_OPEN_FILE, PICGO_OPEN_DIRECTORY, OPEN_URL, GET_PICBEDS, HIDE_DOCK } from '#/events/constants'
-import { IRPCActionType, ISartMode } from '~/universal/types/enum'
+import { II18nLanguage, IRPCActionType, ISartMode } from '~/universal/types/enum'
 
 // Electron 相关
 import {
@@ -1789,6 +1789,30 @@ const shortUrlServerList = [{
 }
 ]
 
+const languageList = i18nManager.languageList.map(item => ({
+  label: item.label,
+  value: item.value
+}))
+
+const startModeList = [
+  {
+    label: $T('SETTINGS_START_MODE_QUIET'),
+    value: ISartMode.QUIET
+  },
+  {
+    label: $T('SETTINGS_START_MODE_MINI'),
+    value: ISartMode.MINI
+  },
+  {
+    label: $T('SETTINGS_START_MODE_NO_TRAY'),
+    value: ISartMode.NO_TRAY
+  },
+  {
+    label: $T('SETTINGS_START_MODE_MAIN'),
+    value: ISartMode.MAIN
+  }
+]
+
 const manualPageOpenList = [{
   label: $T('MANUAL_PAGE_OPEN_BY_BUILD_IN'),
   value: 'window'
@@ -1798,6 +1822,8 @@ const manualPageOpenList = [{
   value: 'browser'
 }
 ]
+
+const picBed = ref<IPicBedType[]>([])
 
 const waterMarkPositionMap = new Map([
   ['north', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_TOP')],
@@ -1934,9 +1960,7 @@ const form = reactive<ISettingForm>({
   autoCloseMainWindow: false,
   logLevel: ['all'],
   autoCopyUrl: true,
-  checkBetaUpdate: true,
   useBuiltinClipboard: true,
-  language: 'zh-CN',
   logFileSizeLimit: 10,
   deleteCloudFile: false,
   isCustomMiniIcon: false,
@@ -1955,22 +1979,20 @@ const form = reactive<ISettingForm>({
   deleteLocalFile: false,
   serverKey: '',
   aesPassword: '',
-  manualPageOpen: 'browser',
   enableWebServer: false,
   webServerHost: '0.0.0.0',
   webServerPort: 37777,
   webServerPath: ''
 })
 
-const languageList = i18nManager.languageList.map(item => ({
-  label: item.label,
-  value: item.value
-}))
+const valueToOptionItem = (value: any, list: { label: string, value: any }[]) => {
+  return list.find(item => item.value === value) || list[0]
+}
 
-const currentLanguage = ref('zh-CN')
-const currentStartMode = ref('quiet')
-
-const picBed = ref<IPicBedType[]>([])
+const currentLanguage = ref()
+const currentStartMode = ref()
+const currentManualPageOpen = ref()
+const currentShortUrlServer = ref()
 
 const logFileVisible = ref(false)
 const customLinkVisible = ref(false)
@@ -2092,22 +2114,20 @@ async function initData () {
   if (config !== undefined) {
     const settings = config.settings || {}
     const picBed = config.picBed
-    form.updateHelper = settings.showUpdateTip === undefined ? true : settings.showUpdateTip
+    form.updateHelper = settings.showUpdateTip ?? true
     form.autoStart = settings.autoStart || false
     form.rename = settings.rename || false
     form.autoRename = settings.autoRename || false
     form.uploadNotification = settings.uploadNotification || false
-    form.uploadResultNotification = settings.uploadResultNotification === undefined ? true : settings.uploadResultNotification
+    form.uploadResultNotification = settings.uploadResultNotification ?? true
     form.miniWindowOntop = settings.miniWindowOntop || false
     form.autoCloseMiniWindow = settings.autoCloseMiniWindow || false
     form.autoCloseMainWindow = settings.autoCloseMainWindow || false
     form.logLevel = initArray(settings.logLevel || [], ['all'])
-    form.autoCopyUrl = settings.autoCopy === undefined ? true : settings.autoCopy
-    form.checkBetaUpdate = settings.checkBetaUpdate === undefined ? true : settings.checkBetaUpdate
-    form.useBuiltinClipboard = settings.useBuiltinClipboard === undefined ? true : settings.useBuiltinClipboard
+    form.autoCopyUrl = settings.autoCopy ?? true
+    form.useBuiltinClipboard = settings.useBuiltinClipboard ?? true
     form.isAutoListenClipboard = settings.isAutoListenClipboard || false
-    form.language = settings.language ?? 'zh-CN'
-    form.encodeOutputURL = settings.encodeOutputURL === undefined ? false : settings.encodeOutputURL
+    form.encodeOutputURL = settings.encodeOutputURL || false
     form.deleteCloudFile = settings.deleteCloudFile || false
     form.autoImport = settings.autoImport || false
     form.autoImportPicBed = initArray(settings.autoImportPicBed || [], [])
@@ -2123,13 +2143,14 @@ async function initData () {
     form.deleteLocalFile = settings.deleteLocalFile || false
     form.serverKey = settings.serverKey || ''
     form.aesPassword = settings.aesPassword || 'PicList-aesPassword'
-    form.manualPageOpen = settings.manualPageOpen || 'window'
     form.enableWebServer = settings.enableWebServer || false
     form.webServerHost = settings.webServerHost || '0.0.0.0'
     form.webServerPort = settings.webServerPort || 37777
     form.webServerPath = settings.webServerPath || ''
-    currentLanguage.value = settings.language ?? 'zh-CN'
-    currentStartMode.value = settings.startMode || 'quiet'
+    currentLanguage.value = valueToOptionItem(settings.language || 'zh-CN', languageList)
+    currentStartMode.value = valueToOptionItem(settings.startMode || ISartMode.QUIET, startModeList)
+    currentManualPageOpen.value = valueToOptionItem(settings.manualPageOpen || 'window', manualPageOpenList)
+    currentShortUrlServer.value = valueToOptionItem(settings.shortUrlServer || 'c1n', shortUrlServerList)
     customLink.value = settings.customLink || '![$fileName]($url)'
     proxy.value = picBed.proxy || ''
     npmRegistry.value = settings.registry || ''
@@ -2298,7 +2319,7 @@ function handleAutoImportPicBedChange (val: string[]) {
 }
 
 function handleHideDockChange (val: ICheckBoxValueType) {
-  if (val && currentStartMode.value === 'no-tray') {
+  if (val && currentStartMode.value.value === ISartMode.NO_TRAY) {
     ElMessage.warning($T('SETTINGS_ISHIDEDOCK_TIPS'))
     form.isHideDock = false
     return
@@ -2457,21 +2478,20 @@ function handleAutoCloseMiniWindowChange (val: ICheckBoxValueType) {
 
 function handleMiniWindowOntop (val: ICheckBoxValueType) {
   saveConfig(configPaths.settings.miniWindowOntop, val)
-  $message.info($T('TIPS_NEED_RELOAD'))
+  ipcRenderer.send('miniWindowOntop', val)
 }
 
-async function handleMiniIconPath (evt: Event) {
+async function handleMiniIconPath (_: Event) {
   const result = await invokeToMain('openFileSelectDialog')
   if (result && result[0]) {
     form.customMiniIcon = result[0]
     saveConfig(configPaths.settings.customMiniIcon, form.customMiniIcon)
-    $message.info($T('TIPS_NEED_RELOAD'))
+    ipcRenderer.send('updateMiniIcon', form.customMiniIcon)
   }
 }
 
 function handleIsCustomMiniIcon (val: ICheckBoxValueType) {
   saveConfig(configPaths.settings.isCustomMiniIcon, val)
-  $message.info($T('TIPS_NEED_RELOAD'))
 }
 
 function handleAutoCopyUrl (val: ICheckBoxValueType) {
@@ -2495,6 +2515,7 @@ function handleUseShortUrl (val: ICheckBoxValueType) {
 }
 
 function handleShortUrlServerChange (val: string) {
+  form.shortUrlServer = val
   saveConfig(configPaths.settings.shortUrlServer, val)
 }
 
@@ -2667,7 +2688,7 @@ function handleStartModeChange (val: ISartModeValues) {
   if (val === ISartMode.NO_TRAY) {
     if (form.isHideDock) {
       ElMessage.warning($T('SETTINGS_ISHIDEDOCK_TIPS'))
-      currentStartMode.value = ISartMode.QUIET
+      currentStartMode.value = valueToOptionItem(ISartMode.QUIET, startModeList)
       return
     }
     $message.info($T('TIPS_NEED_RELOAD'))
@@ -2683,8 +2704,10 @@ function handleManualPageOpenChange (val: string) {
   })
 }
 
-function goConfigPage () {
-  sendToMain(OPEN_URL, 'https://piclist.cn/configure.html')
+async function goConfigPage () {
+  const lang = await getConfig(configPaths.settings.language) || II18nLanguage.ZH_CN
+  const url = lang === II18nLanguage.ZH_CN ? 'https://piclist.cn/configure.html' : 'https://piclist.cn/en/configure.html'
+  sendToMain(OPEN_URL, url)
 }
 
 function goShortCutPage () {

@@ -31,7 +31,7 @@ export class ManageApi extends EventEmitter implements ManageApiType {
 
   constructor (currentPicBed: string = '') {
     super()
-    this.currentPicBed = currentPicBed || (this.getConfig('currentPicBed') ?? 'placeholder')
+    this.currentPicBed = currentPicBed || 'placeholder'
     this.configPath = managePathChecker()
     this.initConfigPath()
     this.logger = new ManageLogger(this)
@@ -230,6 +230,7 @@ export class ManageApi extends EventEmitter implements ManageApiType {
       case 'tcyun':
       case 'aliyun':
       case 'qiniu':
+      case 's3plist':
         try {
           client = this.createClient() as any
           return await client.createBucket(param!)

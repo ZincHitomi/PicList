@@ -52,11 +52,23 @@ class GithubApi {
     }
   }
 
-  formatFolder (item: any, slicedPrefix: string) {
+  formatFolder (item: any, slicedPrefix: string, branch: string, repo: string, cdnUrl: string | undefined) {
     const key = `${slicedPrefix ? `${slicedPrefix}/` : ''}${item.path}/`
+    let rawUrl = ''
+    const placeholders = ['{username}', '{repo}', '{branch}', '{path}']
+    rawUrl = cdnUrl
+      ? placeholders.some(item => cdnUrl.includes(item))
+        ? placeholders.reduce((url, ph) => {
+          const value = ph === '{username}' ? this.username : ph === '{repo}' ? repo : ph === '{branch}' ? branch : ph === '{path}' ? key : ''
+          return url.replaceAll(ph, value)
+        }, cdnUrl)
+        : `${cdnUrl}/${key}`
+      : `https://raw.githubusercontent.com/${this.username}/${repo}/${branch}/${key}`
+    rawUrl = rawUrl.replace(/(?<!https?:)\/{2,}/g, '/')
     return {
       ...item,
       Key: key,
+      url: rawUrl,
       key,
       fileSize: 0,
       formatedTime: '',
@@ -154,7 +166,7 @@ class GithubApi {
     const { bucketName: repo, customUrl: branch, prefix, cancelToken, cdnUrl } = configMap
     const slicedPrefix = prefix.replace(/(^\/+|\/+$)/g, '')
     const cancelTask = [false]
-    ipcMain.on(cancelDownloadLoadingFileList, (_evt: IpcMainEvent, token: string) => {
+    ipcMain.on(cancelDownloadLoadingFileList, (_: IpcMainEvent, token: string) => {
       if (token === cancelToken) {
         cancelTask[0] = true
         ipcMain.removeAllListeners(cancelDownloadLoadingFileList)
@@ -205,7 +217,7 @@ class GithubApi {
     const { bucketName: repo, customUrl: branch, prefix, cancelToken, cdnUrl } = configMap
     const slicedPrefix = prefix.replace(/(^\/+|\/+$)/g, '')
     const cancelTask = [false]
-    ipcMain.on('cancelLoadingFileList', (_evt: IpcMainEvent, token: string) => {
+    ipcMain.on('cancelLoadingFileList', (_: IpcMainEvent, token: string) => {
       if (token === cancelToken) {
         cancelTask[0] = true
         ipcMain.removeAllListeners('cancelLoadingFileList')
@@ -224,7 +236,7 @@ class GithubApi {
     if (res && res.statusCode === 200) {
       res.body.tree.forEach((item: any) => {
         if (item.type === 'tree') {
-          result.fullList.push(this.formatFolder(item, slicedPrefix))
+          result.fullList.push(this.formatFolder(item, slicedPrefix, branch, repo, cdnUrl))
         } else {
           result.fullList.push(this.formatFile(item, slicedPrefix, branch, repo, cdnUrl))
         }
