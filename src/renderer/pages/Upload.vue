@@ -82,27 +82,13 @@
               @change="handlePasteStyleChange"
             >
               <el-radio-button
-                label="markdown"
-                title="![alt](url)"
+                v-for="(item, key) in pasteFormatList"
+                :key="key"
+                :value="key"
+                :title="item"
               >
-                Markdown
+                {{ key }}
               </el-radio-button>
-              <el-radio-button
-                label="HTML"
-                title="<img src='url'/>"
-              />
-              <el-radio-button
-                label="URL"
-                title="http://test.com/test.png"
-              />
-              <el-radio-button
-                label="UBB"
-                title="[img]url[/img]"
-              />
-              <el-radio-button
-                label="Custom"
-                :title="customLink"
-              />
             </el-radio-group>
             <el-radio-group
               v-model="useShortUrl"
@@ -110,13 +96,13 @@
               @change="handleUseShortUrlChange"
             >
               <el-radio-button
-                :label="true"
+                :value="true"
                 style="border-radius: 5px"
               >
                 {{ $T('UPLOAD_SHORT_URL') }}
               </el-radio-button>
               <el-radio-button
-                :label="false"
+                :value="false"
                 style="border-radius: 5px"
               >
                 {{ $T('UPLOAD_NORMAL_URL') }}
@@ -160,432 +146,40 @@
       align-center
       append-to-body
     >
-      <el-form
-        label-position="top"
-        require-asterisk-position="right"
-        label-width="10vw"
-        size="default"
-        :model="waterMarkForm"
-      >
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISADDWM')"
-        >
-          <el-switch
-            v-model="waterMarkForm.isAddWatermark"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_WMTYPE')"
-        >
-          <el-radio-group v-model="waterMarkForm.watermarkType">
-            <el-radio label="text">
-              {{ $T('UPLOAD_PAGE_IMAGE_PROCESS_WMTYPE_TEXT') }}
-            </el-radio>
-            <el-radio label="image">
-              {{ $T('UPLOAD_PAGE_IMAGE_PROCESS_WMTYPE_IMAGE') }}
-            </el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISFULLSCREEN_WM')"
-        >
-          <el-switch
-            v-model="waterMarkForm.isFullScreenWatermark"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_WMDEGREE')"
-        >
-          <el-input-number
-            v-model="waterMarkForm.watermarkDegree"
-            :step="1"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark && waterMarkForm.watermarkType === 'text'"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_WMTEXT')"
-        >
-          <el-input v-model="waterMarkForm.watermarkText" />
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark && waterMarkForm.watermarkType === 'text'"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_WMTEXT_FONT_PATH')"
-        >
-          <el-input v-model="waterMarkForm.watermarkFontPath" />
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_WMRATIO')"
-        >
-          <el-input-number
-            v-model="waterMarkForm.watermarkScaleRatio"
-            :min="0"
-            :max="1"
-            :step="0.01"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark && waterMarkForm.watermarkType === 'text'"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_WMCOLOR')"
-        >
-          <el-color-picker
-            v-model="waterMarkForm.watermarkColor"
-            show-alpha
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark && waterMarkForm.watermarkType === 'image'"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_WMPATH')"
-        >
-          <el-input v-model="waterMarkForm.watermarkImagePath" />
-        </el-form-item>
-        <el-form-item
-          v-show="waterMarkForm.isAddWatermark"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_WMPOSITION')"
-        >
-          <el-radio-group
-            v-model="waterMarkForm.watermarkPosition"
-          >
-            <el-radio
-              v-for="item in waterMarkPositionMap"
-              :key="item[0]"
-              :label="item[0]"
-            >
-              {{ item[1] }}
-            </el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISREMOVEEXIF')"
-        >
-          <el-switch
-            v-model="compressForm.isRemoveExif"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_QUALITY')"
-        >
-          <el-input-number
-            v-model="compressForm.quality"
-            :min="0"
-            :max="100"
-            :step="1"
-          />
-        </el-form-item>
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISCONVERT')"
-        >
-          <el-switch
-            v-model="compressForm.isConvert"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="compressForm.isConvert"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_CONVERTFORMAT')"
-        >
-          <el-select
-            v-model="compressForm.convertFormat"
-            :persistent="false"
-            teleported
-          >
-            <el-option
-              v-for="item in availableFormat"
-              :key="item"
-              :label="item"
-              :value="item"
-            />
-          </el-select>
-        </el-form-item>
-        <el-form-item
-          v-show="compressForm.isConvert"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_CONVERTFORMAT_SPECIFIC')"
-        >
-          <el-input
-            v-model="formatConvertObj"
-            placeholder="{&quot;jpg&quot;: &quot;png&quot;, &quot;png&quot;: &quot;jpg&quot;}"
-            type="textarea"
-            :autosize="{ minRows: 2, maxRows: 4}"
-          />
-        </el-form-item>
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISFLIP')"
-        >
-          <el-switch
-            v-model="compressForm.isFlip"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISFLOP')"
-        >
-          <el-switch
-            v-model="compressForm.isFlop"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISRESIZE')"
-        >
-          <el-switch
-            v-model="compressForm.isReSize"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="compressForm.isReSize"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_RESIZEWIDTH')"
-        >
-          <el-input-number
-            v-model="compressForm.reSizeWidth"
-            :min="0"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="compressForm.isReSize"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_RESIZEHEIGHT')"
-        >
-          <el-input-number
-            v-model="compressForm.reSizeHeight"
-            :min="0"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="compressForm.isReSize && compressForm.reSizeHeight > 0 && compressForm.reSizeWidth === 0"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_SKIPRESIZEOfSMALLIMG_HEIGHT')"
-        >
-          <el-switch
-            v-model="compressForm.skipReSizeOfSmallImg"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="compressForm.isReSize && compressForm.reSizeWidth > 0 && compressForm.reSizeHeight === 0"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_SKIPRESIZEOfSMALLIMG_WIDTH')"
-        >
-          <el-switch
-            v-model="compressForm.skipReSizeOfSmallImg"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISRESIZEBYPERCENT')"
-        >
-          <el-switch
-            v-model="compressForm.isReSizeByPercent"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="compressForm.isReSizeByPercent"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_RESIZEPERCENT')"
-        >
-          <el-input-number
-            v-model="compressForm.reSizePercent"
-            :min="0"
-          />
-        </el-form-item>
-        <el-form-item
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ISROTATE')"
-        >
-          <el-switch
-            v-model="compressForm.isRotate"
-            style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949;"
-          />
-        </el-form-item>
-        <el-form-item
-          v-show="compressForm.isRotate"
-          :label="$T('UPLOAD_PAGE_IMAGE_PROCESS_ROTATEDEGREE')"
-        >
-          <el-input-number
-            v-model="compressForm.rotateDegree"
-            :step="1"
-          />
-        </el-form-item>
-        <el-form-item>
-          <el-button
-            type="primary"
-            @click="handleSaveConfig"
-          >
-            {{ $T('UPLOAD_PAGE_IMAGE_PROCESS_CONFIRM') }}
-          </el-button>
-          <el-button @click="closeDialog">
-            {{ $T('UPLOAD_PAGE_IMAGE_PROCESS_CANCEL') }}
-          </el-button>
-        </el-form-item>
-      </el-form>
+      <ImageProcessSetting
+        v-model="imageProcessDialogVisible"
+      />
     </el-dialog>
   </div>
 </template>
+
 <script lang="ts" setup>
-// Element Plus 图标
 import { UploadFilled, CaretBottom } from '@element-plus/icons-vue'
-
-// Electron 相关
 import { ipcRenderer, IpcRendererEvent } from 'electron'
-
-// Vue 相关
-import { ref, reactive, onBeforeMount, onBeforeUnmount, watch, toRaw } from 'vue'
-
-// 国际化函数
+import { ref, onBeforeMount, onBeforeUnmount, watch } from 'vue'
 import { T as $T } from '@/i18n'
-
-// 事件总线
 import $bus from '@/utils/bus'
-
-// 事件常量
 import {
   SHOW_INPUT_BOX,
   SHOW_INPUT_BOX_RESPONSE,
   SHOW_UPLOAD_PAGE_MENU,
   GET_PICBEDS
 } from '~/universal/events/constants'
-
-// 工具函数
 import {
   isUrl
 } from '~/universal/utils/common'
-
-// Element Plus 消息提示
 import { ElMessage as $message } from 'element-plus'
-
-// 数据发送工具函数
 import { getConfig, saveConfig, sendToMain, triggerRPC } from '@/utils/dataSender'
-
-// 类型声明
-import { IBuildInCompressOptions, IBuildInWaterMarkOptions } from 'piclist'
-
-// Vue Router 相关
 import { useRouter } from 'vue-router'
-
-// 路由配置常量
 import { PICBEDS_PAGE } from '@/router/config'
 import { IPasteStyle, IRPCActionType } from '~/universal/types/enum'
 import { configPaths } from '~/universal/utils/configPaths'
+import ImageProcessSetting from '@/components/ImageProcessSetting.vue'
 
 const $router = useRouter()
 
 const imageProcessDialogVisible = ref(false)
 const useShortUrl = ref(false)
-
-const waterMarkPositionMap = new Map([
-  ['north', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_TOP')],
-  ['northeast', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_TOP_RIGHT')],
-  ['southeast', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_BOTTOM_RIGHT')],
-  ['south', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_BOTTOM')],
-  ['southwest', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_BOTTOM_LEFT')],
-  ['northwest', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_TOP_LEFT')],
-  ['west', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_LEFT')],
-  ['east', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_RIGHT')],
-  ['centre', $T('UPLOAD_PAGE_IMAGE_PROCESS_POSITION_CENTER')]
-])
-
-const imageExtList = ['jpg', 'jpeg', 'png', 'webp', 'bmp', 'tiff', 'tif', 'svg', 'ico', 'avif', 'heif', 'heic']
-
-const availableFormat = ['avif', 'dz', 'fits', 'gif', 'heif', 'input', 'jpeg', 'jpg', 'jp2', 'jxl', 'magick', 'openslide', 'pdf', 'png', 'ppm', 'raw', 'svg', 'tiff', 'tif', 'v', 'webp']
-
-const waterMarkForm = reactive<any>({
-  isAddWatermark: false,
-  watermarkType: 'text',
-  isFullScreenWatermark: false,
-  watermarkDegree: 0,
-  watermarkText: '',
-  watermarkFontPath: '',
-  watermarkScaleRatio: 0.15,
-  watermarkColor: '#CCCCCC73',
-  watermarkImagePath: '',
-  watermarkPosition: 'southeast'
-})
-
-const compressForm = reactive<any>({
-  quality: 100,
-  isConvert: false,
-  convertFormat: 'jpg',
-  isReSize: false,
-  reSizeWidth: 500,
-  reSizeHeight: 500,
-  skipReSizeOfSmallImg: false,
-  isReSizeByPercent: false,
-  reSizePercent: 50,
-  isRotate: false,
-  rotateDegree: 0,
-  isRemoveExif: false,
-  isFlip: false,
-  isFlop: false
-})
-
-const formatConvertObj = ref('{}')
-
-function closeDialog () {
-  imageProcessDialogVisible.value = false
-}
-
-function handleSaveConfig () {
-  let iformatConvertObj = {}
-  try {
-    iformatConvertObj = JSON.parse(formatConvertObj.value)
-  } catch (error) {
-  }
-  const formatConvertObjEntries = Object.entries(iformatConvertObj)
-  const formatConvertObjEntriesFilter = formatConvertObjEntries.filter((item: any) => {
-    return imageExtList.includes(item[0]) && availableFormat.includes(item[1])
-  })
-  const formatConvertObjFilter = Object.fromEntries(formatConvertObjEntriesFilter)
-  formatConvertObj.value = JSON.stringify(formatConvertObjFilter)
-  compressForm.formatConvertObj = formatConvertObjFilter
-  saveConfig(configPaths.buildIn.compress, toRaw(compressForm))
-  saveConfig(configPaths.buildIn.watermark, toRaw(waterMarkForm))
-  closeDialog()
-}
-
-async function initData () {
-  const compress = await getConfig<IBuildInCompressOptions>(configPaths.buildIn.compress)
-  const watermark = await getConfig<IBuildInWaterMarkOptions>(configPaths.buildIn.watermark)
-  if (compress) {
-    compressForm.quality = compress.quality ?? 100
-    compressForm.isConvert = compress.isConvert ?? false
-    compressForm.convertFormat = compress.convertFormat ?? 'jpg'
-    compressForm.isReSize = compress.isReSize ?? false
-    compressForm.reSizeWidth = compress.reSizeWidth ?? 500
-    compressForm.reSizeHeight = compress.reSizeHeight ?? 500
-    compressForm.skipReSizeOfSmallImg = compress.skipReSizeOfSmallImg ?? false
-    compressForm.isReSizeByPercent = compress.isReSizeByPercent ?? false
-    compressForm.reSizePercent = compress.reSizePercent ?? 50
-    compressForm.isRotate = compress.isRotate ?? false
-    compressForm.rotateDegree = compress.rotateDegree ?? 0
-    compressForm.isRemoveExif = compress.isRemoveExif ?? false
-    compressForm.isFlip = compress.isFlip ?? false
-    compressForm.isFlop = compress.isFlop ?? false
-    try {
-      if (typeof compress.formatConvertObj === 'object') {
-        formatConvertObj.value = JSON.stringify(compress.formatConvertObj)
-      } else {
-        formatConvertObj.value = compress.formatConvertObj ?? '{}'
-      }
-    } catch (error) {
-      formatConvertObj.value = '{}'
-    }
-  }
-  if (watermark) {
-    waterMarkForm.isAddWatermark = watermark.isAddWatermark ?? false
-    waterMarkForm.watermarkType = watermark.watermarkType ?? 'text'
-    waterMarkForm.isFullScreenWatermark = watermark.isFullScreenWatermark ?? false
-    waterMarkForm.watermarkDegree = watermark.watermarkDegree ?? 0
-    waterMarkForm.watermarkText = watermark.watermarkText ?? ''
-    waterMarkForm.watermarkFontPath = watermark.watermarkFontPath ?? ''
-    waterMarkForm.watermarkScaleRatio = watermark.watermarkScaleRatio ?? 0.15
-    waterMarkForm.watermarkColor = watermark.watermarkColor === undefined || watermark.watermarkColor === '' ? '#CCCCCC73' : watermark.watermarkColor
-    waterMarkForm.watermarkImagePath = watermark.watermarkImagePath ?? ''
-    waterMarkForm.watermarkPosition = watermark.watermarkPosition ?? 'southeast'
-  }
-}
-
 const dragover = ref(false)
 const progress = ref(0)
 const showProgress = ref(false)
@@ -593,8 +187,15 @@ const showError = ref(false)
 const pasteStyle = ref('')
 const picBed = ref<IPicBedType[]>([])
 const picBedName = ref('')
-const customLink = ref('')
 const picBedConfigName = ref('')
+
+const pasteFormatList = ref({
+  [IPasteStyle.MARKDOWN]: '![alt](url)',
+  [IPasteStyle.HTML]: '<img src="url"/>',
+  [IPasteStyle.URL]: 'http://test.com/test.png',
+  [IPasteStyle.UBB]: '[img]url[/img]',
+  [IPasteStyle.CUSTOM]: ''
+})
 
 onBeforeMount(() => {
   ipcRenderer.on('uploadProgress', (_event: IpcRendererEvent, _progress: number) => {
@@ -615,7 +216,6 @@ onBeforeMount(() => {
   sendToMain(GET_PICBEDS)
   ipcRenderer.on(GET_PICBEDS, getPicBeds)
   $bus.on(SHOW_INPUT_BOX_RESPONSE, handleInputBoxValue)
-  initData()
 })
 
 const handleImageProcess = () => {
@@ -723,7 +323,7 @@ function ipcSendFiles (files: FileList) {
 
 async function getPasteStyle () {
   pasteStyle.value = await getConfig(configPaths.settings.pasteStyle) || IPasteStyle.MARKDOWN
-  customLink.value = await getConfig(configPaths.settings.customLink) || '![$fileName]($url)'
+  pasteFormatList.value.Custom = await getConfig(configPaths.settings.customLink) || '![$fileName]($url)'
 }
 
 async function getUseShortUrl () {
@@ -736,9 +336,9 @@ async function handleUseShortUrlChange () {
   })
 }
 
-function handlePasteStyleChange (val: string | number | boolean) {
+function handlePasteStyleChange (val: string | number | boolean | undefined) {
   saveConfig({
-    [configPaths.settings.pasteStyle]: val
+    [configPaths.settings.pasteStyle]: val || IPasteStyle.MARKDOWN
   })
 }
 
