@@ -1,35 +1,22 @@
-// Electron 相关
 import { ipcRenderer, IpcRendererEvent } from 'electron'
-
-// 事件常量
-import { PICGO_SAVE_CONFIG, PICGO_GET_CONFIG, RPC_ACTIONS } from '#/events/constants'
-
-// UUID
 import { v4 as uuid } from 'uuid'
 
-// 枚举类型声明
-import { IRPCActionType } from '~/universal/types/enum'
+import { getRawData } from '@/utils/common'
 
-// 公共工具函数
-import { getRawData } from './common'
+import { PICGO_SAVE_CONFIG, PICGO_GET_CONFIG, RPC_ACTIONS, PICGO_GET_CONFIG_SYNC } from '#/events/constants'
+import { IRPCActionType } from '#/types/enum'
 
 export function saveConfig (config: IObj | string, value?: any) {
   const configObject = typeof config === 'string' ? { [config]: value } : getRawData(config)
   ipcRenderer.send(PICGO_SAVE_CONFIG, configObject)
 }
 
-export function getConfig<T> (key?: string): Promise<T | undefined> {
-  return new Promise((resolve) => {
-    const callbackId = uuid()
-    const callback = (_event: IpcRendererEvent, config: T | undefined, returnCallbackId: string) => {
-      if (returnCallbackId === callbackId) {
-        resolve(config)
-        ipcRenderer.removeListener(PICGO_GET_CONFIG, callback)
-      }
-    }
-    ipcRenderer.on(PICGO_GET_CONFIG, callback)
-    ipcRenderer.send(PICGO_GET_CONFIG, key, callbackId)
-  })
+export async function getConfig<T> (key?: string): Promise<T | undefined> {
+  return await ipcRenderer.invoke(PICGO_GET_CONFIG, key)
+}
+
+export async function getConfigSync<T> (key?: string): Promise<T | undefined> {
+  return await ipcRenderer.sendSync(PICGO_GET_CONFIG_SYNC, key)
 }
 
 /**
@@ -59,9 +46,4 @@ export function triggerRPC<T> (action: IRPCActionType, ...args: any[]): Promise<
 export function sendRPC (action: IRPCActionType, ...args: any[]): void {
   const data = getRawData(args)
   ipcRenderer.send(RPC_ACTIONS, action, data)
-}
-
-export function sendToMain (channel: string, ...args: any[]) {
-  const data = getRawData(args)
-  ipcRenderer.send(channel, ...data)
 }

@@ -241,15 +241,19 @@
 </template>
 
 <script lang="ts" setup>
+import { ElMessage } from 'element-plus'
 import { InfoFilled, Folder } from '@element-plus/icons-vue'
 import { ref, onBeforeMount, watch } from 'vue'
-import { getConfig, saveConfig, invokeToMain } from '../utils/dataSender'
-import { ElMessage } from 'element-plus'
-import { fileCacheDbInstance } from '../store/bucketFileDb'
-import { formatFileSize, customRenameFormatTable } from '../utils/common'
+
+import DynamicSwitch from '@/manage/components/DynamicSwitch.vue'
+import { fileCacheDbInstance } from '@/manage/store/bucketFileDb'
+import { formatFileSize, customRenameFormatTable } from '@/manage/utils/common'
+import { getConfig, saveConfig } from '@/manage/utils/dataSender'
+
 import { T as $T } from '@/i18n'
-import { selectDownloadFolder } from '../utils/static'
-import DynamicSwitch from '../components/DynamicSwitch.vue'
+
+import { selectDownloadFolder } from '#/utils/static'
+import { invokeToMain } from '@/utils/common'
 
 const form = ref<IStringKeyMap>({
   timestampRename: false,

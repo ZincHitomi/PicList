@@ -1,5 +1,3 @@
-// External dependencies
-import path from 'path'
 import {
   dialog,
   shell,
@@ -8,28 +6,23 @@ import {
   clipboard
 } from 'electron'
 import fs from 'fs-extra'
-
-// Electron modules
-
-// Custom utilities and modules
-import GuiApi from 'apis/gui'
-import shortKeyHandler from 'apis/app/shortKey/shortKeyHandler'
-import picgo from '@core/picgo'
-import { handleStreamlinePluginName, simpleClone } from '~/universal/utils/common'
+import path from 'path'
 import { IGuiMenuItem, PicGo as PicGoCore } from 'piclist'
-import windowManager from 'apis/app/window/windowManager'
-import { showNotification } from '~/main/utils/common'
-import { dbPathChecker } from 'apis/core/datastore/dbChecker'
-import { GalleryDB } from 'apis/core/datastore'
-import pasteTemplate from '../utils/pasteTemplate'
-import { i18nManager, T } from '~/main/i18n'
-import { rpcServer } from './rpc'
-
-// Custom types/enums
-import { IPasteStyle, IPicGoHelperType, IWindowList } from '#/types/enum'
 import { IObject, IFilter } from '@picgo/store/dist/types'
 
-// External utility functions
+import picgo from '@core/picgo'
+import { GalleryDB } from '@core/datastore'
+import { dbPathChecker } from '@core/datastore/dbChecker'
+
+import shortKeyHandler from 'apis/app/shortKey/shortKeyHandler'
+import windowManager from 'apis/app/window/windowManager'
+import GuiApi from 'apis/gui'
+
+import { showNotification } from '~/utils/common'
+import pasteTemplate from '~/utils/pasteTemplate'
+import { i18nManager, T } from '~/i18n'
+import { rpcServer } from '~/events/rpc'
+
 import {
   PICGO_SAVE_CONFIG,
   PICGO_GET_CONFIG,
@@ -45,9 +38,12 @@ import {
   OPEN_WINDOW,
   GET_LANGUAGE_LIST,
   SET_CURRENT_LANGUAGE,
-  GET_CURRENT_LANGUAGE
+  GET_CURRENT_LANGUAGE,
+  PICGO_GET_CONFIG_SYNC
 } from '#/events/constants'
-import { configPaths } from '~/universal/utils/configPaths'
+import { configPaths } from '#/utils/configPaths'
+import { IPasteStyle, IPicGoHelperType, IWindowList } from '#/types/enum'
+import { handleStreamlinePluginName, simpleClone } from '#/utils/common'
 
 // eslint-disable-next-line
 const requireFunc = typeof __webpack_require__ === 'function' ? __non_webpack_require__ : require
@@ -216,7 +212,7 @@ const handlePluginUpdate = async (fullName: string | string[]) => {
 }
 
 const handleUpdateAllPlugin = () => {
-  ipcMain.on('updateAllPlugin', async (event: IpcMainEvent, list: string[]) => {
+  ipcMain.on('updateAllPlugin', async (_: IpcMainEvent, list: string[]) => {
     handlePluginUpdate(list)
   })
 }
@@ -254,7 +250,7 @@ const handleGetPicBedConfig = () => {
 
 // TODO: remove it
 const handlePluginActions = () => {
-  ipcMain.on('pluginActions', (event: IpcMainEvent, name: string, label: string) => {
+  ipcMain.on('pluginActions', (_: IpcMainEvent, name: string, label: string) => {
     const plugin = picgo.pluginLoader.getPlugin(name)
     if (plugin?.guiMenu?.(picgo)?.length) {
       const menu: GuiMenuItem[] = plugin.guiMenu(picgo)
@@ -268,7 +264,7 @@ const handlePluginActions = () => {
 }
 
 const handleRemoveFiles = () => {
-  ipcMain.on('removeFiles', (event: IpcMainEvent, files: ImgInfo[]) => {
+  ipcMain.on('removeFiles', (_: IpcMainEvent, files: ImgInfo[]) => {
     setTimeout(() => {
       picgo.emit('remove', files, GuiApi.getInstance())
     }, 500)
@@ -276,15 +272,21 @@ const handleRemoveFiles = () => {
 }
 
 const handlePicGoSaveConfig = () => {
-  ipcMain.on(PICGO_SAVE_CONFIG, (event: IpcMainEvent, data: IObj) => {
+  ipcMain.on(PICGO_SAVE_CONFIG, (_: IpcMainEvent, data: IObj) => {
     picgo.saveConfig(data)
   })
 }
 
 const handlePicGoGetConfig = () => {
-  ipcMain.on(PICGO_GET_CONFIG, (event: IpcMainEvent, key: string | undefined, callbackId: string) => {
+  ipcMain.handle(PICGO_GET_CONFIG, (_, key: string | undefined) => {
+    return picgo.getConfig(key)
+  })
+}
+
+const handlePicGoGetConfigSync = () => {
+  ipcMain.on(PICGO_GET_CONFIG_SYNC, (event: IpcMainEvent, key: string | undefined) => {
     const result = picgo.getConfig(key)
-    event.sender.send(PICGO_GET_CONFIG, result, callbackId)
+    event.returnValue = result
   })
 }
 
@@ -441,6 +443,7 @@ export default {
     handleRemoveFiles()
     handlePicGoSaveConfig()
     handlePicGoGetConfig()
+    handlePicGoGetConfigSync()
     handlePicGoGalleryDB()
     handleImportLocalPlugin()
     handleUpdateAllPlugin()

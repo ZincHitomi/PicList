@@ -1,24 +1,22 @@
-import fs from 'fs-extra'
-import path from 'path'
-import mime from 'mime-types'
 import axios from 'axios'
-import { app } from 'electron'
 import crypto from 'crypto'
+import { app } from 'electron'
+import fs from 'fs-extra'
 import got, { OptionsOfTextResponseBody, RequestError } from 'got'
-import { Stream } from 'stream'
-import { promisify } from 'util'
-import UpDownTaskQueue,
-{
-  uploadTaskSpecialStatus,
-  commonTaskStatus,
-  downloadTaskSpecialStatus
-} from '../datastore/upDownTaskQueue'
-import { ManageLogger } from '../utils/logger'
-import { formatHttpProxy, IHTTPProxy } from '@/manage/utils/common'
 import { HttpsProxyAgent, HttpProxyAgent } from 'hpagent'
 import http from 'http'
 import https from 'https'
+import mime from 'mime-types'
 import Downloader from 'nodejs-file-downloader'
+import path from 'path'
+import { Stream } from 'stream'
+import { promisify } from 'util'
+
+import UpDownTaskQueue from '~/manage/datastore/upDownTaskQueue'
+import { ManageLogger } from '~/manage/utils/logger'
+
+import { commonTaskStatus, downloadTaskSpecialStatus, uploadTaskSpecialStatus } from '#/types/enum'
+import { formatHttpProxy } from '#/utils/common'
 
 export const getFSFile = async (
   filePath: string,
@@ -216,8 +214,6 @@ export const formatError = (err: any, params:IStringKeyMap) => {
   return `${String(err)}${JSON.stringify(params)}`
 }
 
-export const trimPath = (path: string) => path.replace(/^\/+|\/+$/g, '').replace(/\/+/g, '/')
-
 const commonOptions = {
   keepAlive: true,
   keepAliveMsecs: 1000,
@@ -306,13 +302,6 @@ export function getOptions (
     throwHttpErrors: false
   }
 }
-
-export const formatEndpoint = (endpoint: string, sslEnabled: boolean): string =>
-  !/^https?:\/\//.test(endpoint)
-    ? `${sslEnabled ? 'https' : 'http'}://${endpoint}`
-    : sslEnabled
-      ? endpoint.replace('http://', 'https://')
-      : endpoint.replace('https://', 'http://')
 
 export class ConcurrencyPromisePool {
   limit: number

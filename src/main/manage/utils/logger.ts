@@ -2,12 +2,13 @@ import chalk from 'chalk'
 import dayjs from 'dayjs'
 import fs from 'fs-extra'
 import path from 'path'
-import util from 'util'
-import { ILogType } from '#/types/enum'
 import { ILogColor, ILogger } from 'piclist/dist/types'
-import { ManageApiType, Undefinable } from '~/universal/types/manage'
+import util from 'util'
+
+import { ILogType } from '#/types/enum'
+import { IManageApiType, Undefinable } from '#/types/manage'
 import { enforceNumber, isDev } from '#/utils/common'
-import { configPaths } from '~/universal/utils/configPaths'
+import { configPaths } from '#/utils/configPaths'
 
 export class ManageLogger implements ILogger {
   readonly #level = {
@@ -17,11 +18,11 @@ export class ManageLogger implements ILogger {
     [ILogType.error]: 'red'
   }
 
-  readonly #ctx: ManageApiType
+  readonly #ctx: IManageApiType
   #logLevel!: string
   #logPath!: string
 
-  constructor (ctx: ManageApiType) {
+  constructor (ctx: IManageApiType) {
     this.#ctx = ctx
   }
 

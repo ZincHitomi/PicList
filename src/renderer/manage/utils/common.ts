@@ -1,20 +1,11 @@
-// UUID
+import crypto from 'crypto'
+import path from 'path'
 import { v4 as uuidv4 } from 'uuid'
 
-// 路径处理库
-import path from 'path'
+import { availableIconList } from '@/manage/utils/icon'
+import { getConfig } from '@/manage/utils/dataSender'
 
-// 加密库
-import crypto from 'crypto'
-
-// 可用图标列表
-import { availableIconList } from './icon'
-
-// 数据发送工具函数
-import { getConfig } from './dataSender'
-
-// 工具函数
-import { handleUrlEncode, safeSliceF, isNeedToShorten } from '~/universal/utils/common'
+import { handleUrlEncode, safeSliceF, isNeedToShorten } from '#/utils/common'
 
 export function randomStringGenerator (length: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
@@ -127,11 +118,6 @@ export function formatFileName (fileName: string, length: number = 20) {
   return isNeedToShorten(fileName, length) ? `${safeSliceF(name, length - 3 - ext.length)}...${ext}` : fileName
 }
 
-export const getExtension = (fileName: string) => path.extname(fileName).slice(1)
-
-export const isImage = (fileName: string) =>
-  ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico', 'svg'].includes(getExtension(fileName))
-
 export function formObjToTableData (obj: any) {
   const exclude = [undefined, null, '', 'transformedConfig']
   return Object.keys(obj).filter(key => !exclude.includes(obj[key])).map(key => ({
@@ -146,34 +132,6 @@ export function isValidUrl (str: string) {
   } catch (e) {
     return false
   }
-}
-
-export interface IHTTPProxy {
-  host: string
-  port: number
-  protocol: string
-}
-
-export const formatHttpProxy = (proxy: string | undefined, type: 'object' | 'string'): IHTTPProxy | undefined | string => {
-  if (!proxy) return undefined
-  if (/^https?:\/\//.test(proxy)) {
-    const { protocol, hostname, port } = new URL(proxy)
-    return type === 'string'
-      ? `${protocol}//${hostname}:${port}`
-      : {
-        host: hostname,
-        port: Number(port),
-        protocol: protocol.slice(0, -1)
-      }
-  }
-  const [host, port] = proxy.split(':')
-  return type === 'string'
-    ? `http://${host}:${port}`
-    : {
-      host,
-      port: port ? Number(port) : 80,
-      protocol: 'http'
-    }
 }
 
 export const svg = `
