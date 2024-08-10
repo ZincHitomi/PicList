@@ -1,6 +1,6 @@
 {
   "name": "piclist",
-  "version": "2.9.0",
+  "version": "2.9.2",
   "author": {
     "name": "Kuingsmile",
     "email": "pkukuing@gmail.com"
@@ -52,7 +52,7 @@
     "cos-nodejs-sdk-v5": "^2.12.5",
     "dexie": "^3.2.4",
     "electron-updater": "^6.1.4",
-    "element-plus": "2.7.6",
+    "element-plus": "2.7.7",
     "epipebomb": "^1.0.0",
     "fast-xml-parser": "^4.3.2",
     "form-data": "^4.0.0",
@@ -67,7 +67,7 @@
     "multer": "^1.4.5-lts.1",
     "node-ssh-no-cpu-features": "^2.0.0",
     "nodejs-file-downloader": "^4.12.1",
-    "piclist": "^1.9.0",
+    "piclist": "^1.9.1",
     "pinia": "^2.1.7",
     "pinia-plugin-persistedstate": "^3.2.1",
     "proxy-agent": "^5.0.0",
@@ -79,7 +79,7 @@
     "upyun": "^3.4.6",
     "uuid": "^9.0.1",
     "video.js": "^8.6.1",
-    "vue": "^3.4.30",
+    "vue": "^3.4.31",
     "vue-router": "^4.4.0",
     "vue3-lazyload": "^0.3.8",
     "vue3-photo-preview": "^0.3.0",
@@ -97,7 +97,7 @@
     "@types/lowdb": "^1.0.15",
     "@types/mime-types": "^2.1.4",
     "@types/multer": "^1.4.11",
-    "@types/node": "^16.10.2",
+    "@types/node": "^22.0.0",
     "@types/semver": "^7.5.6",
     "@types/tunnel": "^0.0.7",
     "@types/upyun": "^3.4.3",
