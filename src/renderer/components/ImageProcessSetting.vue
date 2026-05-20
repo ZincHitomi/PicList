@@ -766,7 +766,45 @@
 
             <SettingCard
               v-if="
-                ((activeForm.compress.reSizeHeight || 0) > 0 && (activeForm.compress.reSizeWidth || 0) === 0) ||
+                activeForm.compress.isReSize &&
+                (activeForm.compress.reSizeHeight || 0) > 0 &&
+                (activeForm.compress.reSizeWidth || 0) === 0
+              "
+              class="flex flex-col justify-center"
+            >
+              <CustomSwitch
+                v-model="activeForm.compress.longEdgeAsHeight"
+                :title="t('pages.imageProcess.transform.longEdgeAsHeight')"
+                class="custom-switch"
+                no-border
+                small
+              />
+
+              <PerPicbedSetting
+                v-if="!configId"
+                :map-field="compressForm.longEdgeAsHeightMap"
+                :default-value="defaultCompressSetting.longEdgeAsHeight"
+                field-name="longEdgeAsHeight"
+                :global-value="compressForm.longEdgeAsHeight"
+                input-type="checkbox"
+                @map-change="
+                  (picbedType, value) =>
+                    safeSetMapValue(
+                      compressForm,
+                      'longEdgeAsHeight',
+                      picbedType,
+                      value,
+                      defaultCompressSetting.longEdgeAsHeight,
+                    )
+                "
+              />
+            </SettingCard>
+
+            <SettingCard
+              v-if="
+                (activeForm.compress.isReSize &&
+                  (activeForm.compress.reSizeHeight || 0) > 0 &&
+                  (activeForm.compress.reSizeWidth || 0) === 0) ||
                 ((activeForm.compress.reSizeWidth || 0) > 0 && (activeForm.compress.reSizeHeight || 0) === 0)
               "
               class="flex flex-col justify-center"
@@ -1054,11 +1092,14 @@ const advancedRenameList = computed(() => ({
     { label: t('pages.settings.upload.placeholder.second'), value: '{s}' },
     { label: t('pages.settings.upload.placeholder.millisecond'), value: '{ms}' },
     { label: t('pages.settings.upload.placeholder.timestamp'), value: '{timestamp}' },
+    { label: t('pages.settings.upload.placeholder.timestampS'), value: '{timestampS}' },
   ],
   categoryHash: [
     { label: t('pages.settings.upload.placeholder.md5'), value: '{md5}' },
     { label: t('pages.settings.upload.placeholder.md5-16'), value: '{md5-16}' },
     { label: t('pages.settings.upload.placeholder.uuid'), value: '{uuid}' },
+    { label: t('pages.settings.upload.placeholder.sha1'), value: '{sha1}' },
+    { label: t('pages.settings.upload.placeholder.sha1-n'), value: '{sha1-n}' },
     { label: t('pages.settings.upload.placeholder.sha256'), value: '{sha256}' },
     { label: t('pages.settings.upload.placeholder.sha256-n'), value: '{sha256-n}' },
   ],
@@ -1136,6 +1177,7 @@ const defaultCompressSetting = {
   skipReSizeOfSmallImg: false,
   isReSizeByPercent: false,
   reSizePercent: 50,
+  longEdgeAsHeight: false,
   isRotate: false,
   rotateDegree: 0,
   isRemoveExif: false,
@@ -1170,6 +1212,7 @@ const compressForm = ref<IBuildInCompressOptions>({
   skipReSizeOfSmallImgMap: {},
   isReSizeByPercentMap: {},
   reSizePercentMap: {},
+  longEdgeAsHeightMap: {},
   isRotateMap: {},
   rotateDegreeMap: {},
   isRemoveExifMap: {},
@@ -1478,6 +1521,8 @@ const autoRenameComputed = computed({
         checkIfItemOnlyId(singleConfigInFile).then(async isOnlyId => {
           if (isOnlyId) {
             await removeItemFromBuildInList(singleConfigInFile.id)
+          } else {
+            await UpdateBuildInList(singleConfigInFile)
           }
         })
       }
@@ -1505,6 +1550,8 @@ const manualRenameComputed = computed({
         checkIfItemOnlyId(singleConfigInFile).then(async isOnlyId => {
           if (isOnlyId) {
             await removeItemFromBuildInList(singleConfigInFile.id)
+          } else {
+            await UpdateBuildInList(singleConfigInFile)
           }
         })
       }
@@ -1544,6 +1591,8 @@ watch(
         checkIfItemOnlyId(singleConfigInFile).then(async isOnlyId => {
           if (isOnlyId) {
             await removeItemFromBuildInList(singleConfigInFile.id)
+          } else {
+            await UpdateBuildInList(singleConfigInFile)
           }
         })
       }

@@ -287,11 +287,12 @@ import BucketPage from '@/manage/pages/BucketPage.vue'
 import EmptyPage from '@/manage/pages/EmptyPage.vue'
 import ManageSetting from '@/manage/pages/ManageSetting.vue'
 import { useManageStore } from '@/manage/store/manageStore'
-import { supportedPicBedList } from '@/manage/utils/constants'
+import { getSupportedPicBedList } from '@/manage/utils/constants'
 import { newBucketConfig } from '@/manage/utils/newBucketConfig'
 import { IRPCActionType } from '@/utils/enum'
 
 const { t } = useI18n()
+const supportedPicBedList = computed(() => getSupportedPicBedList(t))
 const manageStore = useManageStore() as any
 const route = useRoute()
 const router = useRouter()
@@ -341,7 +342,7 @@ watch(
 
 watch(sidebarWidth, () => {}, { immediate: false })
 
-const urlMap: IStringKeyMap = {
+const urlMap: IStringKeyMap = computed(() => ({
   aliyun: 'https://oss.console.aliyun.com',
   github: 'https://github.com',
   imgur: 'https://imgur.com',
@@ -349,11 +350,12 @@ const urlMap: IStringKeyMap = {
   qiniu: 'https://portal.qiniu.com',
   s3plist: 'https://aws.amazon.com/cn/s3/',
   sftp: 'https://github.com/imba97/picgo-plugin-sftp-uploader',
-  smms: 'https://smms.app',
+  smms: 'https://s.ee',
   tcyun: 'https://console.cloud.tencent.com/cos',
   upyun: 'https://console.upyun.com',
-  webdavplist: 'https://baike.baidu.com/item/WebDAV/4610909',
-}
+  webdavplist:
+    getDomainFromEndpoint(currentPagePicBedConfig.endpoint || '') || 'https://baike.baidu.com/item/WebDAV/4610909',
+}))
 
 const showNewIconList = ['aliyun', 'qiniu', 'tcyun', 's3plist']
 
@@ -375,10 +377,21 @@ const menuTitleMap: IStringKeyMap = {
   local: '',
 }
 
-const openPicBedUrl = () => window.electron.sendRPC(IRPCActionType.OPEN_URL, urlMap[currentPagePicBedConfig.picBedName])
+const openPicBedUrl = () =>
+  window.electron.sendRPC(IRPCActionType.OPEN_URL, urlMap.value[currentPagePicBedConfig.picBedName])
 
 function openNewBucketDrawer() {
   bucketDrawerVisible.value = true
+}
+
+function getDomainFromEndpoint(endpoint: string): string {
+  try {
+    const url = new URL(endpoint)
+    return url.origin
+  } catch (_e) {
+    console.error('Invalid endpoint URL:', endpoint)
+    return endpoint
+  }
 }
 
 function createNewBucket(picBedName: string) {

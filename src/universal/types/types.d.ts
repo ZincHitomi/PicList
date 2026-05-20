@@ -203,6 +203,7 @@ interface IPluginMenuConfig {
 
 interface INPMSearchResultObject {
   package: {
+    date?: string
     name: string
     scope: string
     version: string
@@ -320,7 +321,6 @@ interface IQiniuConfig {
 
 interface ISMMSConfig {
   token: string
-  backupDomain?: string
 }
 
 interface ITcYunConfig {

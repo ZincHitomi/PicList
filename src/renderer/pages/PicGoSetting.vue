@@ -1044,6 +1044,26 @@
               :placeholder="t('pages.settings.advanced.serverKeyPlaceholder')"
             />
           </SettingCard>
+          <SettingCard>
+            <CustomInput
+              v-model="formOfSetting.serverMaxConcurrency"
+              type="number"
+              :min="0"
+              :step="1"
+              :title="t('pages.settings.advanced.serverMaxConcurrency')"
+              :placeholder="t('pages.settings.advanced.serverMaxConcurrencyPlaceholder')"
+            />
+          </SettingCard>
+          <SettingCard>
+            <CustomInput
+              v-model="formOfSetting.serverUploadInterval"
+              type="number"
+              :min="0"
+              :step="100"
+              :title="t('pages.settings.advanced.serverUploadInterval')"
+              :placeholder="t('pages.settings.advanced.serverUploadIntervalPlaceholder')"
+            />
+          </SettingCard>
         </SettingSection>
       </div>
       <template #footer>
@@ -1441,6 +1461,8 @@ const formOfSetting = ref<ISettingForm>({
   sinkToken: '',
   deleteLocalFile: false,
   serverKey: '',
+  serverMaxConcurrency: 0,
+  serverUploadInterval: 0,
   aesPassword: 'PicList-aesPassword',
   enableWebServer: false,
   webServerHost: '0.0.0.0',
@@ -1468,6 +1490,30 @@ const tabs = computed(() => [
   { id: 'update', label: t('pages.settings.update.title'), icon: RefreshCw },
 ])
 
+const syncTaskList = computed(() => [
+  { task: IRPCActionType.CONFIGURE_UPLOAD_COMMON_CONFIG, label: t('pages.settings.sync.commonConfig'), number: 2 },
+  { task: IRPCActionType.CONFIGURE_UPLOAD_MANAGE_CONFIG, label: t('pages.settings.sync.manageConfig'), number: 2 },
+  { task: IRPCActionType.CONFIGURE_UPLOAD_ALL_CONFIG, label: t('pages.settings.sync.allConfig'), number: 4 },
+  { task: IRPCActionType.CONFIGURE_DOWNLOAD_COMMON_CONFIG, label: t('pages.settings.sync.commonConfig'), number: 2 },
+  { task: IRPCActionType.CONFIGURE_DOWNLOAD_MANAGE_CONFIG, label: t('pages.settings.sync.manageConfig'), number: 2 },
+  { task: IRPCActionType.CONFIGURE_DOWNLOAD_ALL_CONFIG, label: t('pages.settings.sync.allConfig'), number: 4 },
+  { task: IRPCActionType.CONFIGURE_SYNC_GALLERY_DB, label: t('pages.settings.sync.galleryDB'), number: 2 },
+])
+
+const logLevel = computed(() => [
+  { type: 'all', name: t('pages.settings.advanced.logLevelList.all') },
+  { type: 'success', name: t('pages.settings.advanced.logLevelList.success') },
+  { type: 'error', name: t('pages.settings.advanced.logLevelList.error') },
+  { type: 'info', name: t('pages.settings.advanced.logLevelList.info') },
+  { type: 'warn', name: t('pages.settings.advanced.logLevelList.warn') },
+  { type: 'none', name: t('pages.settings.advanced.logLevelList.none') },
+])
+
+const secondModeList = computed(() => [
+  { label: t('pages.settings.upload.secondPicBedMode.backup'), value: 'backup' },
+  { label: t('pages.settings.upload.secondPicBedMode.seperate'), value: 'seperate' },
+])
+
 const needUpdate = computed(() => {
   if (latestVersion.value) {
     return compareVersion2Update(version, latestVersion.value)
@@ -1480,24 +1526,6 @@ const renderedReleaseNotes = computed(() => {
 })
 
 /* constants and enums */
-const syncTaskList = [
-  { task: IRPCActionType.CONFIGURE_UPLOAD_COMMON_CONFIG, label: t('pages.settings.sync.commonConfig'), number: 2 },
-  { task: IRPCActionType.CONFIGURE_UPLOAD_MANAGE_CONFIG, label: t('pages.settings.sync.manageConfig'), number: 2 },
-  { task: IRPCActionType.CONFIGURE_UPLOAD_ALL_CONFIG, label: t('pages.settings.sync.allConfig'), number: 4 },
-  { task: IRPCActionType.CONFIGURE_DOWNLOAD_COMMON_CONFIG, label: t('pages.settings.sync.commonConfig'), number: 2 },
-  { task: IRPCActionType.CONFIGURE_DOWNLOAD_MANAGE_CONFIG, label: t('pages.settings.sync.manageConfig'), number: 2 },
-  { task: IRPCActionType.CONFIGURE_DOWNLOAD_ALL_CONFIG, label: t('pages.settings.sync.allConfig'), number: 4 },
-  { task: IRPCActionType.CONFIGURE_SYNC_GALLERY_DB, label: t('pages.settings.sync.galleryDB'), number: 2 },
-]
-
-const logLevel = [
-  { type: 'all', name: t('pages.settings.advanced.logLevelList.all') },
-  { type: 'success', name: t('pages.settings.advanced.logLevelList.success') },
-  { type: 'error', name: t('pages.settings.advanced.logLevelList.error') },
-  { type: 'info', name: t('pages.settings.advanced.logLevelList.info') },
-  { type: 'warn', name: t('pages.settings.advanced.logLevelList.warn') },
-  { type: 'none', name: t('pages.settings.advanced.logLevelList.none') },
-]
 
 const syncType = ['github', 'gitee', 'gitea', 'webdav']
 const version = pkg.version
@@ -1532,10 +1560,6 @@ const languageList = [
   { label: 'English', value: 'en' },
 ]
 
-const secondModeList = [
-  { label: t('pages.settings.upload.secondPicBedMode.backup'), value: 'backup' },
-  { label: t('pages.settings.upload.secondPicBedMode.seperate'), value: 'seperate' },
-]
 const formKeys = Object.keys(formOfSetting.value) as (keyof ISettingForm)[]
 const autoWatchKeys = [
   'showUpdateTip',
@@ -1552,6 +1576,8 @@ const autoWatchKeys = [
   'webServerPort',
   'webServerPath',
   'serverKey',
+  'serverMaxConcurrency',
+  'serverUploadInterval',
   'uploadNotification',
   'uploadResultNotification',
   'autoCloseMainWindow',
@@ -1572,7 +1598,7 @@ const autoWatchKeys = [
   'enableAdvancedAnimation',
 ]
 
-const advancedRenameList = {
+const advancedRenameList = computed(() => ({
   categoryTime: [
     { label: t('pages.settings.upload.placeholder.year4'), value: '{Y}' },
     { label: t('pages.settings.upload.placeholder.year2'), value: '{y}' },
@@ -1583,11 +1609,14 @@ const advancedRenameList = {
     { label: t('pages.settings.upload.placeholder.second'), value: '{s}' },
     { label: t('pages.settings.upload.placeholder.millisecond'), value: '{ms}' },
     { label: t('pages.settings.upload.placeholder.timestamp'), value: '{timestamp}' },
+    { label: t('pages.settings.upload.placeholder.timestampS'), value: '{timestampS}' },
   ],
   categoryHash: [
     { label: t('pages.settings.upload.placeholder.md5'), value: '{md5}' },
     { label: t('pages.settings.upload.placeholder.md5-16'), value: '{md5-16}' },
     { label: t('pages.settings.upload.placeholder.uuid'), value: '{uuid}' },
+    { label: t('pages.settings.upload.placeholder.sha1'), value: '{sha1}' },
+    { label: t('pages.settings.upload.placeholder.sha1-n'), value: '{sha1-n}' },
     { label: t('pages.settings.upload.placeholder.sha256'), value: '{sha256}' },
     { label: t('pages.settings.upload.placeholder.sha256-n'), value: '{sha256-n}' },
   ],
@@ -1596,7 +1625,7 @@ const advancedRenameList = {
     { label: t('pages.settings.upload.placeholder.localFolder'), value: '{localFolder:n}' },
     { label: t('pages.settings.upload.placeholder.randomString'), value: '{str-n}' },
   ],
-}
+}))
 
 const advancedRenameTitleList = computed(() => ({
   categoryTime: t('pages.settings.upload.placeholder.categoryTime'),
