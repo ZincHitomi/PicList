@@ -260,7 +260,7 @@
       <CustomModal
         v-if="imageProcessDialogVisible"
         v-model:visible="imageProcessDialogVisible"
-        :title="t('pages.imageProcess.title')"
+        title=" "
         :description="
           PicBedId === '' ? t('pages.imageProcess.subtitle-Global') : t('pages.imageProcess.subtitle-PerPicbed')
         "
@@ -633,7 +633,6 @@
 </template>
 
 <script lang="ts" setup>
-import { useStorage } from '@vueuse/core'
 import {
   ArrowLeftRightIcon,
   CheckCircleIcon,
@@ -660,7 +659,8 @@ import {
   XCircleIcon,
   XIcon,
   ZapIcon,
-} from 'lucide-vue-next'
+} from '@lucide/vue'
+import { useStorage } from '@vueuse/core'
 import { computed, onBeforeMount, onBeforeUnmount, reactive, ref, useTemplateRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
